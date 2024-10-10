@@ -1,0 +1,309 @@
+---
+title: "Natalidad en Uruguay entre los años 1999 y 2021"
+format: closeread-html
+execute:
+  echo: false
+  warning: false
+editor: source
+---
+
+## Quarto
+```{r}
+library(readr)
+library(purrr)
+library(tidyverse)
+```
+
+
+```{r}
+# Get the list of all CSV files in the directory
+file_list <- list.files(path = "data", pattern = "*.csv", full.names = TRUE)
+```
+
+
+```{r}
+# Read each CSV file and create a data frame for each
+data_frames <- lapply(file_list, read_csv2)
+
+# Name each data frame after the CSV file (without extension)
+names(data_frames) <- gsub(".*/|\\.csv", "", file_list)
+```
+
+```{r}
+for (i in seq_along(data_frames)) {
+  assign(names(data_frames)[i], data_frames[[i]])
+}
+```
+
+```{r}
+# Combine all data frames into one
+combined_df <- bind_rows(data_frames, .id = "source")
+
+# If you want to remove the source column
+combined_df <- combined_df %>% select(-source)
+```
+
+
+```{r}
+combined_df$tipo_de_parto <- ifelse(combined_df$cesopar == 1, 
+                                    "Vaginal", ifelse(
+                                      combined_df$cesopar == 2,
+                                      "Cesárea", "No indicado"
+                                    ))
+```
+
+
+```{r}
+#combined_df %>% group_by(Anio_parto) %>% count() %>% filter(Anio_parto > 2004 & Anio_parto < 2012) %>% ungroup() %>%  summarise(media = mean(n))
+```
+
+```{r}
+#combined_df %>% group_by(Anio_parto) %>% count() %>% filter(Anio_parto > 2011 & Anio_parto < 2017) %>% ungroup() %>%  summarise(media = mean(n))
+```
+
+:::{.cr-section  layout="overlay-left"}
+
+:::{#cr-plot}
+
+```{r}
+#|label: plot
+
+combined_df |>
+  filter(Anio_parto > 1998) |>
+  group_by(Anio_parto) |> 
+  count(name = "Total") |>
+  ggplot(aes(x = Anio_parto, y = Total)) +
+  xlab("Año del parto") +
+  geom_line() + 
+  geom_point(aes(2021, y = 34600),     # Resaltar punto
+             color = "red", size = 3) +
+  geom_label(aes(x = 2019, 
+               y =34600, 
+               label = paste("Mínimo histórcio:", "34.603")),
+             vjust = -1.0,
+             color = "black",
+             size = 3.5, fill = "lightgray")+
+  theme_bw()
+```
+:::
+
+En la gráfica se muestra el descenso de la natalidad en el Uruguay desde 1999 a 2021
+@cr-plot
+
+En 1999 hubo 53.833 nacimientos [@cr-plot]{pan-to="50%,60%" scale-by="2"}
+
+Entre los años 2005 y 2011 se estabilizan los nacimientos con un promedio 47.070 [@cr-plot]{pan-to="30%,50%" scale-by="2"}
+
+Luego se observa un aumento a partir del año 2012 hasta el 2015, con un promedio de 48.218 [@cr-plot]{pan-to="-20%,50%" scale-by="2"}
+
+A partir de 2017 comienza un descenso llegando a los 34.603 nacimientos en 2021 [@cr-plot]{pan-to="-60%, 10%" scale-by="2"}
+
+Lo que representa una caída del 35,7% respecto al total de 1999  [@cr-plot]{pan-to="-100%, -50%" scale-by="2.5"}
+
+:::
+
+## Cesáreas
+
+Otro aspecto interesante a analizar es la evolución de la propoción de cesáreas (total de cesáreas/total de nacimientos)
+
+```{r}
+#| results: hide
+table(combined_df$tipo_de_parto)
+```
+
+```{r}
+combined_df$tipo_de_parto <- fct_infreq(
+  combined_df$tipo_de_parto)
+```
+
+```{r}
+#| results: hide
+combined_df %>% group_by(Anio_parto, tipo_de_parto) %>% count()
+```
+
+
+
+```{r}
+cesareas_tot <- 
+combined_df %>% filter(tipo_de_parto == "Cesárea") %>%  group_by(Anio_parto) %>% count(name = "Total")
+```
+
+```{r}
+anio_tot <- 
+combined_df %>% group_by(Anio_parto) %>% count(name = "Total año")
+```
+
+
+```{r}
+cesareas_tot_2 <- left_join(anio_tot, cesareas_tot, by = "Anio_parto")
+```
+
+```{r}
+cesareas_tot_2 <- cesareas_tot_2 %>% 
+  mutate(Prop_cesarea = Total/`Total año`)
+```
+
+```{r}
+#| include: false
+combined_df |>
+  filter(tipo_de_parto == "Cesárea" & Anio_parto > 1998) |>
+  group_by(Anio_parto) |> 
+  count(name = "Total") |> 
+  ggplot(aes(x = Anio_parto, y = Total)) +
+  geom_line() +
+  theme_bw()
+```
+
+
+:::{.cr-section  layout="overlay-left"}
+
+:::{#cr-cesareas}
+
+```{r}
+#|label: cesareas
+
+cesareas_tot_2 |>
+  filter(Anio_parto > 1998) |>
+  ggplot(aes(x = Anio_parto, y = Prop_cesarea)) +
+  ylab("Proporción de cesáreas") +
+  xlab("Año del parto") +
+  geom_line() +
+  theme_bw()
+```
+:::
+
+
+En 1999 19,9% de los nacimientos fueron por cesárea. [@cr-cesareas]{pan-to="50%, -30%" scale-by="2"}
+
+Con un aumento lineal en el período se llega a un 31,1% de cesáreas en 2005 [@cr-cesareas]{pan-to="30%,50%" scale-by="2"}
+
+Luego se observa un aumento a partir del año 2012 hasta el 2015, con un promedio de 48.218 [@cr-plot]{pan-to="-20%,50%" scale-by="2"}
+
+A partir de 2017 comienza un descenso llegando a los 34.603 nacimientos en 2021 [@cr-cesareas]{pan-to="-30%, 10%" scale-by="2"}
+
+:::
+
+```{r}
+total_por_anio <-  combined_df %>% group_by(Anio_parto) %>% count(name = "Total") %>% ungroup()
+```
+
+```{r}
+total_por_anio <- total_por_anio[5:27, ]
+```
+
+```{r}
+modelo_nac <- lm(Total ~ Anio_parto, data = total_por_anio)
+```
+
+```{r}
+summary(modelo_nac)
+```
+
+```{r}
+predict.lm(modelo_nac, newdata = data.frame(Anio_parto = 2030:2081))
+```
+
+```{r}
+combined_df |>
+  filter(Anio_parto > 1998) |>
+  group_by(Anio_parto) |> 
+  count(name = "Total") |>
+  ggplot(aes(x = Anio_parto, y = Total)) +
+  xlab("Año del parto") +
+  geom_smooth(method = 'lm', se = FALSE)+
+  geom_line() +
+  theme_bw()
+```
+
+```{r}
+cesareas_tot_2
+```
+
+```{r}
+modelo_ces <- lm(Prop_cesarea ~ Anio_parto, data = cesareas_tot_2[5:27, ])
+```
+
+```{r}
+summary(modelo_ces)
+```
+
+```{r}
+predict.lm(modelo_ces, newdata = data.frame(Anio_parto = 2025:2065))
+```
+
+
+```{r}
+cesareas_tot_2 |>
+  filter(Anio_parto > 1998) |>
+  ggplot(aes(x = Anio_parto, y = Prop_cesarea)) +
+  ylab("Proporción de cesáreas") +
+  xlab("Año del parto") +
+  geom_smooth(method = 'lm', se = FALSE) +
+  geom_line() +
+  theme_bw()
+```
+
+
+
+```{r}
+combined_df  %>% filter(edadm != 99) %>%  group_by(Anio_parto) %>%  summarise(edad_media_madre = mean(edadm, na.rm = TRUE))
+```
+
+```{r}
+combined_df|> filter(edadm != 99)  |> group_by(Anio_parto) |> summarise(edad_media_madre = mean(edadm, na.rm = TRUE)) |>
+  filter(Anio_parto > 1998) |>
+  ggplot(aes(x = Anio_parto, y = edad_media_madre)) +
+  ylab("Edad del la madre") +
+  xlab("Año del parto") +
+  geom_smooth(method = 'lm', se = FALSE) +
+  geom_line() +
+  theme_bw()
+```
+
+
+```{r}
+combined_df |> filter(edadm != 99)  |> group_by(Anio_parto) |> summarise(edad_media_madre = median(edadm, na.rm = TRUE)) |>
+  filter(Anio_parto > 1998) |>
+  ggplot(aes(x = Anio_parto, y = edad_media_madre)) +
+  ylab("Edad del la madre") +
+  xlab("Año del parto") +
+  geom_smooth(method = 'lm', se = FALSE) +
+  geom_line() +
+  theme_bw()
+```
+
+```{r}
+combined_df |> filter(edadm != 99)  |> group_by(Anio_parto) |> summarise(edad_media_madre = quantile( edadm, p = 0.75, na.rm = TRUE)) |>
+  filter(Anio_parto > 1998) |>
+  ggplot(aes(x = Anio_parto, y = edad_media_madre)) +
+  ylab("Edad del la madre") +
+  xlab("Año del parto") +
+  geom_smooth(method = 'lm', se = FALSE) +
+  geom_line() +
+  theme_bw()
+```
+
+
+```{r}
+combined_df %>% filter(edadm != 99) %>%  group_by(Anio_parto) %>%  summarise(edad_media_madre = max(edadm, na.rm = TRUE))
+```
+
+```{r}
+#edad padre
+combined_df  %>% filter(edadp != 99) %>%  group_by(Anio_parto) %>%  summarise(edad_media_padre = mean(edadp, na.rm = TRUE))
+```
+
+```{r}
+#edad padre
+combined_df  %>% filter(edadp != 99) %>%  group_by(Anio_parto) %>%  summarise(edad_mediana_padre = median(edadp, na.rm = TRUE))
+```
+
+```{r}
+#edad padre
+combined_df  %>% filter(edadp != 99) %>%  group_by(Anio_parto) %>%  summarise(edad_maxima_padre = max(edadp, na.rm = TRUE))
+```
+
+```{r}
+combined_df %>% filter(edadp > 80 & edadp < 92) %>% View()
+```
+
