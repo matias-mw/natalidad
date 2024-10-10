@@ -1,10 +1,5 @@
 ---
 title: "Natalidad en Uruguay entre los años 1999 y 2021"
-format: closeread-html
-execute:
-  echo: false
-  warning: false
-editor: source
 ---
 
 ## Quarto
