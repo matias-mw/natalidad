@@ -1,5 +1,8 @@
 ---
 title: "natalidad"
+include-in-header:
+  text: |
+    <link rel="shortcut icon" href="images/baby.png" />
 ---
 
 This is a Quarto website.

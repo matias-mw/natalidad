@@ -1,9 +1,6 @@
 project:
   type: website
   output-dir: docs
-  pre-render:
-    - './copy_extension.sh'
-
 website:
   title: "natalidad"
   navbar:
@@ -18,6 +15,9 @@ format:
     theme: cosmo
     css: styles.css
     toc: true
-
+    
+include-in-header:
+  text: |
+    <link rel="shortcut icon" href="images/baby.png" />
 
 
