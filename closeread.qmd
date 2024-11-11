@@ -1,6 +1,10 @@
 ---
 title: "Natalidad en Uruguay entre los años 1999 y 2023"
-format: closeread-html
+format: 
+  closeread-html:
+    cr-style:
+      narrative-background-color-overlay: darkslategrey
+      narrative-text-color-overlay: "#dba0a0"
 execute:
   echo: false
   warning: false
@@ -114,7 +118,7 @@ combined_df |>
   theme(#text=element_text(size=20), #change font size of all text
         axis.text=element_text(size=14), #change font size of axis text
         axis.title=element_text(size=16), #change font size of axis titles
-        plot.title=element_text(size=18), #change font size of plot title
+        plot.title=element_text(size=16), #change font size of plot title
         legend.text=element_text(size=12), #change font size of legend text
         legend.title=element_text(size=14)) #change font size of legend title   
 ```
@@ -216,7 +220,6 @@ cesareas_tot_2 |>
 ```
 :::
 
-[@cr-cesareas]{pan-to="0%, 0%" scale-by="1"}
 
 En 1999 19,9% de los nacimientos fueron por cesárea. [@cr-cesareas]{pan-to="50%, -30%" scale-by="2"}
 
@@ -274,7 +277,8 @@ combined_df |>
   count(name = "Total") |>
   ggplot(aes(x = Anio_parto, y = Total)) +
   xlab("Año del parto") +
-  geom_smooth(method = 'lm', se = FALSE)+
+  scale_x_continuous(breaks = seq(2000, 2060, by=10)) +
+  geom_smooth(method = 'lm', se = FALSE) +
   geom_line() +
   geom_line(data = nacimientos_pred, 
             aes(Anio_parto, 
@@ -282,7 +286,13 @@ combined_df |>
             linetype = 'dashed', 
             color = 'red',
             linewidth = 1.2) + 
-  theme_bw()
+  theme_bw() +
+  theme(
+        axis.text=element_text(size=14), #change font size of axis text
+        axis.title=element_text(size=16), #change font size of axis titles
+        plot.title=element_text(size=18), #change font size of plot title
+        legend.text=element_text(size=12), #change font size of legend text
+        legend.title=element_text(size=14)) #change font size of legend title   
 ```
 
 ```{r}
@@ -320,7 +330,8 @@ cesareas_tot_2 |>
   filter(Anio_parto > 1998) |>
   ggplot(aes(x = Anio_parto, y = Prop_cesarea)) +
   ylab("Proporción de cesáreas") +
-  xlab("Año del parto") +
+  xlab("Año del parto")  +
+  scale_x_continuous(breaks = seq(2000, 2060, by=10)) +
   geom_smooth(method = 'lm', se = FALSE) +
   geom_line() + 
    geom_line(data = cesareas_pred, 
@@ -335,11 +346,11 @@ cesareas_tot_2 |>
                                                    decimal.mark = ',')) +
   theme_bw() +
   theme(
-        axis.text=element_text(size=16), #change font size of axis text
-        axis.title=element_text(size=18), #change font size of axis titles
-        plot.title=element_text(size=20), #change font size of plot title
-        legend.text=element_text(size=14), #change font size of legend text
-        legend.title=element_text(size=16)) #change font size of legend title   
+        axis.text=element_text(size=14), #change font size of axis text
+        axis.title=element_text(size=16), #change font size of axis titles
+        plot.title=element_text(size=18), #change font size of plot title
+        legend.text=element_text(size=12), #change font size of legend text
+        legend.title=element_text(size=14)) #change font size of legend title   
 ```
 
 
