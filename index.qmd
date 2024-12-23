@@ -23,6 +23,7 @@ library(readr)
 library(purrr)
 library(tidyverse)
 library(plotly)
+library(qs)
 ```
 
 
