@@ -52,7 +52,7 @@ combined_df |>
              color = "red", size = 3) +
   geom_label(aes(x = 2020, 
                y =33600, 
-               label = paste("Mínimo histórcio:", "31.385")),
+               label = paste("Mínimo histórico:", "31.385")),
              vjust = -1.0,
              color = "black",
              size = 3.5, fill = "lightgray")+ 
