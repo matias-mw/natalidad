@@ -2,22 +2,23 @@ project:
   type: website
   output-dir: docs
 website:
-  title: "natalidad"
+  title: "Evolución de la natalidad"
   navbar:
     left:
       - href: index.qmd
-        text: Home
-      - about.qmd
-      - closeread.qmd
+        text:  "{{< fa baby >}} "
 
 format:
   html:
     theme: cosmo
     css: styles.css
     toc: true
+    include-in-header: reset-zoom.js
     
 include-in-header:
   text: |
     <link rel="shortcut icon" href="images/baby.png" />
+     
+    
 
 

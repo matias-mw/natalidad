@@ -1,14 +1,307 @@
 ---
-title: "natalidad"
+title: "Natalidad en Uruguay entre los años 1999 y 2023"
 include-in-header:
   text: |
     <link rel="shortcut icon" href="images/baby.png" />
+format: 
+  closeread-html:
+    cr-style:
+      narrative-background-color-overlay: "#45818e"
+      narrative-text-color-overlay: "#f1c232"
+      narrative-background-color-sidebar: "#8fce00"
+      narrative-text-color-sidebar: "#ffe599"
+      narrative-overlay-max-width: "10px"
+execute:
+  echo: false
+  warning: false
+editor: source
 ---
 
-This is a Quarto website.
-
-To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
 
 ```{r}
-1 + 1
+library(readr)
+library(purrr)
+library(tidyverse)
+library(plotly)
+```
+
+
+```{r}
+combined_df = qread(file = "data/combined_df.qs")
+```
+
+
+
+
+:::{.cr-section  layout="overlay-left"}
+
+:::{#cr-plot}
+
+```{r}
+#|label: plot
+
+combined_df |>
+  filter(Anio_parto > 1998) |>
+  group_by(Anio_parto) |> 
+  count(name = "Total") |>
+  ggplot(aes(x = Anio_parto, y = Total)) +
+  xlab("Año del parto") +
+  geom_line() + 
+  geom_point(aes(2023, y = 31385),     # Resaltar punto
+             color = "red", size = 3) +
+  geom_label(aes(x = 2020, 
+               y =33600, 
+               label = paste("Mínimo histórcio:", "31.385")),
+             vjust = -1.0,
+             color = "black",
+             size = 3.5, fill = "lightgray")+ 
+  ggtitle("Evolución del número de nacimientos entre 1999 y 2023") +
+  theme_bw() +
+  theme(#text=element_text(size=20), #change font size of all text
+        axis.text=element_text(size=14), #change font size of axis text
+        axis.title=element_text(size=16), #change font size of axis titles
+        plot.title=element_text(size=16), #change font size of plot title
+        legend.text=element_text(size=12), #change font size of legend text
+        legend.title=element_text(size=14)) #change font size of legend title   
+```
+
+
+:::
+
+En la gráfica se muestra el descenso de la natalidad en el Uruguay desde 1999 a 2023
+@cr-plot
+
+En 1999 hubo 53.833 nacimientos [@cr-plot]{pan-to="50%,60%" scale-by="2"}
+
+Entre los años 2005 y 2011 se estabilizan los nacimientos con un promedio 47.070 [@cr-plot]{pan-to="30%,50%" scale-by="2"}
+
+Luego se observa un aumento a partir del año 2012 hasta el 2015, con un promedio de 48.218 [@cr-plot]{pan-to="-20%,50%" scale-by="2"}
+
+A partir de 2017 comienza un descenso llegando a los 31.385 nacimientos en 2023 [@cr-plot]{pan-to="-60%, 10%" scale-by="2"}
+
+Lo que representa una caída cercana al 42% respecto al total de 1999  [@cr-plot]{pan-to="-100%, -50%" scale-by="2.5"}
+
+@cr-plot
+
+:::
+
+
+## Cesáreas
+
+Otro aspecto interesante a analizar es la evolución de la propoción de cesáreas (total de cesáreas/total de nacimientos) 
+
+
+
+
+```{r}
+#| results: hide
+table(combined_df$tipo_de_parto, useNA = 'ifany')
+```
+
+
+```{r}
+combined_df$tipo_de_parto <- fct_infreq(
+  combined_df$tipo_de_parto)
+```
+
+```{r}
+#| results: hide
+combined_df %>% group_by(Anio_parto, tipo_de_parto) %>% count()
+```
+
+
+
+```{r}
+cesareas_tot <- 
+combined_df %>% filter(tipo_de_parto == "Cesárea") %>%  group_by(Anio_parto) %>% count(name = "Total")
+```
+
+```{r}
+anio_tot <- 
+combined_df %>% group_by(Anio_parto) %>% count(name = "Total año")
+```
+
+
+```{r}
+cesareas_tot_2 <- left_join(anio_tot, cesareas_tot, by = "Anio_parto")
+```
+
+```{r}
+cesareas_tot_2 <- cesareas_tot_2 %>% 
+  mutate(Prop_cesarea = Total/`Total año`)
+```
+
+```{r}
+#| include: false
+combined_df |>
+  filter(tipo_de_parto == "Cesárea" & Anio_parto > 1998) |>
+  group_by(Anio_parto) |> 
+  count(name = "Total") |> 
+  ggplot(aes(x = Anio_parto, y = Total)) +
+  geom_line() +
+  theme_bw()
+```
+
+
+:::{.cr-section  layout="overlay-left"}
+
+:::{#cr-cesareas}
+
+```{r}
+#|label: cesareas
+
+cesareas_tot_2 |>
+  filter(Anio_parto > 1998) |>
+  ggplot(aes(x = Anio_parto, y = Prop_cesarea)) +
+  ylab("Proporción de cesáreas") +
+  xlab("Año del parto") +
+  scale_y_continuous(labels = scales::comma_format(big.mark = '.',
+                                                   decimal.mark = ',')) +
+  geom_line() +
+  theme_bw() +
+  theme(
+        axis.text=element_text(size=16), #change font size of axis text
+        axis.title=element_text(size=18), #change font size of axis titles
+        plot.title=element_text(size=20), #change font size of plot title
+        legend.text=element_text(size=14), #change font size of legend text
+        legend.title=element_text(size=16)) #change font size of legend title   
+```
+
+:::
+
+
+En 1999 19,9% de los nacimientos fueron por cesárea. [@cr-cesareas]{pan-to="50%, -30%" scale-by="2"}
+
+Con un aumento lineal en el período se llega a un 31,1% de cesáreas en 2005 [@cr-cesareas]{pan-to="10%,20%" scale-by="2"}
+
+Y a 44,2% en 2014 [@cr-cesareas]{pan-to="-10%,40%" scale-by="2"}
+
+La proporción de cesáreas continua aumentando llegando a 50% en 2023[@cr-cesareas]{pan-to="-50%, 90%" scale-by="2"}
+
+@cr-cesareas
+
+:::
+
+## Proyecciones
+
+
+De continuar estas tendencias para 2057 se estaría en el entorno de los 10.000 nacimientos en Uruguay y cerca del 90% serían por cesárea. 
+Estos valores surgen de continuar la evolución observada hasta el momento y no implican una predicción del futuro de los nacimientos en Uruguay
+
+```{r}
+total_por_anio <-  combined_df %>% group_by(Anio_parto) %>% count(name = "Total") %>% ungroup()
+```
+
+```{r}
+total_por_anio <- total_por_anio[5:29, ]
+```
+
+```{r}
+modelo_nac <- lm(Total ~ Anio_parto, data = total_por_anio)
+```
+
+```{r}
+#| results: hide
+summary(modelo_nac)
+```
+
+```{r}
+#| results: hide
+predict.lm(modelo_nac, newdata = data.frame(Anio_parto = 2024:2057))
+```
+
+
+```{r}
+pred_nac <- predict.lm(modelo_nac, newdata = data.frame(Anio_parto = 2024:2057))
+```
+
+
+```{r}
+nacimientos_pred <- data.frame(Anio_parto = 2024:2057, 
+                               Total = pred_nac)
+```
+
+
+```{r}
+combined_df |>
+  filter(Anio_parto > 1998) |>
+  group_by(Anio_parto) |> 
+  count(name = "Total") |>
+  ggplot(aes(x = Anio_parto, y = Total)) +
+  xlab("Año del parto") +
+  scale_x_continuous(breaks = seq(2000, 2060, by=10)) +
+  geom_smooth(method = 'lm', se = FALSE) +
+  geom_line() +
+  geom_line(data = nacimientos_pred, 
+            aes(Anio_parto, 
+                 pred_nac), 
+            linetype = 'dashed', 
+            color = 'red',
+            linewidth = 1.2) + 
+  theme_bw() +
+  theme(
+        axis.text=element_text(size=14), #change font size of axis text
+        axis.title=element_text(size=16), #change font size of axis titles
+        plot.title=element_text(size=18), #change font size of plot title
+        legend.text=element_text(size=12), #change font size of legend text
+        legend.title=element_text(size=14)) #change font size of legend title   
+```
+
+```{r}
+#| results: hide
+cesareas_tot_2
+```
+
+
+```{r}
+modelo_ces <- lm(Prop_cesarea ~ Anio_parto, data = cesareas_tot_2[5:29, ])
+```
+
+```{r}
+#| results: hide
+summary(modelo_ces)
+```
+
+```{r}
+#| results: hide
+predict.lm(modelo_ces, newdata = data.frame(Anio_parto = 2024:2057))
+```
+
+```{r}
+pred_cesareas <- predict.lm(modelo_ces, newdata = data.frame(Anio_parto  = 2024:2057))
+```
+
+
+```{r}
+cesareas_pred <- data.frame(Anio_parto = 2024:2057, 
+                               Total = pred_cesareas)
+```
+
+
+```{r}
+cesareas_tot_2 |>
+  filter(Anio_parto > 1998) |>
+  ggplot(aes(x = Anio_parto, y = Prop_cesarea)) +
+  ylab("Proporción de cesáreas") +
+  xlab("Año del parto")  +
+  scale_x_continuous(breaks = seq(2000, 2060, by=10)) +
+  geom_smooth(method = 'lm', se = FALSE) +
+  geom_line() + 
+   geom_line(data = cesareas_pred, 
+            aes(Anio_parto, 
+                 Total), 
+            linetype = 'dashed', 
+            color = 'red',
+            linewidth = 1.2) + 
+  ylab("Proporción de cesáreas") +
+  xlab("Año del parto") +
+  scale_y_continuous(labels = scales::comma_format(big.mark = '.',
+                                                   decimal.mark = ',')) +
+  theme_bw() +
+  theme(
+        axis.text=element_text(size=14), #change font size of axis text
+        axis.title=element_text(size=16), #change font size of axis titles
+        plot.title=element_text(size=18), #change font size of plot title
+        legend.text=element_text(size=12), #change font size of legend text
+        legend.title=element_text(size=14)) #change font size of legend title   
 ```
