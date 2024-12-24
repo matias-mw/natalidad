@@ -1,5 +1,11 @@
 ---
-title: "Natalidad en Uruguay entre los años 1999 y 2023"
+title: | 
+  Natalidad en Uruguay entre los años 1999 y 2023
+title-block-banner: false
+date: 2024-12-24
+date-format: "DD/MM/YYYY"
+lang: es
+author: "Matías Muñoz"
 include-in-header:
   text: |
     <link rel="shortcut icon" href="images/baby.png" />
@@ -15,6 +21,10 @@ execute:
   echo: false
   warning: false
 editor: source
+---
+<a href="https://alea.uy/" target="_blank">
+    <img src="images/alea_logo_v2.png" style="width: 180px; position: absolute; top: 50px; right: 0; padding: 10px;" />
+</a>
 ---
 
 
